@@ -1571,7 +1571,7 @@ int libuboot_read_multiple_config(struct uboot_ctx **ctxlist, const char *config
 	return (ret > 0) ? -1 : ret;
 }
 
-int libuboot_read_config(struct uboot_ctx *ctx, const char *config)
+static int libuboot_read_legacy_config(struct uboot_ctx *ctx, const char *config)
 {
 	FILE *fp;
 	char *line = NULL;
@@ -1653,6 +1653,22 @@ int libuboot_read_config(struct uboot_ctx *ctx, const char *config)
 	free(line);
 
 	return retval;
+}
+
+int libuboot_read_config(struct uboot_ctx *ctx, const char *config)
+{
+	/*
+	 * Try first new format, fallback to legacy
+	 */
+	if (libuboot_read_multiple_config(&ctx, config)) {
+		if (libuboot_initialize(&ctx, NULL) < 0) {
+			return -ENODEV;
+		}
+		if (libuboot_read_legacy_config(ctx, config) < 0) {
+			return -EINVAL;
+		}
+	} 
+	return 0;
 }
 
 static bool libuboot_validate_flags(struct var_entry *entry, const char *value)

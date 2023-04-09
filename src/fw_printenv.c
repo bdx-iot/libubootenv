@@ -135,23 +135,13 @@ int main (int argc, char **argv) {
 	argc -= optind;
 	argv += optind;
 
-
 	if (!cfgfname)
 		cfgfname = DEFAULT_CFG_FILE;
 
-	/*
-	 * Try first new format, fallback to legacy
-	 */
-	ret = libuboot_read_multiple_config(&ctx, cfgfname);
-	if (ret) {
-		if (libuboot_initialize(&ctx, NULL) < 0) {
-			fprintf(stderr, "Cannot initialize environment\n");
-			exit(1);
-			}
-		if ((ret = libuboot_read_config(ctx, cfgfname)) < 0) {
-			fprintf(stderr, "Configuration file wrong or corrupted\n");
-			exit (ret);
-		}
+	ret = libuboot_read_config(ctx, cfgfname);
+	if (ret < 0) {
+		fprintf(stderr, "Configuration file wrong or corrupted\n");
+		exit (ret);
 	} else {
 		if (namespace)
 			ctx = libuboot_get_namespace(ctx, namespace);
